@@ -22,6 +22,24 @@ const delete_task = db.prepare(/*sql*/ `
   DELETE FROM tasks WHERE id = ?
 `);
 
+const update_content = db.prepare(/*sql*/ `
+  UPDATE tasks
+  SET content = $content
+  WHERE id = $id
+  RETURNING id, content, created_at, complete
+`);
+
+const update_complete = db.prepare(
+  /*sql*/
+  `
+UPDATE tasks
+SET complete = NOT complete
+WHERE id = ?
+RETURNING id, content, created_at, complete
+`
+);
+// functions
+
 function createTask(task) {
   return insert_task.get(task);
 }
@@ -32,6 +50,14 @@ function listTasks() {
 
 function removeTask(id) {
   delete_task.run(id);
+}
+
+function editTask(task) {
+  return update_content.get(task);
+}
+
+function toggleTask(id) {
+  return update_complete.get(id);
 }
 
 /*
@@ -62,4 +88,7 @@ console.log(createTask({ content: "Eat an apple", complete: 0 }));
 removeTask(1);
 console.log(listTasks());
 
-module.exports = { createTask, listTasks, removeTask };
+toggleTask(3);
+console.log(listTasks());
+
+module.exports = { createTask, listTasks, removeTask, editTask, toggleTask };
